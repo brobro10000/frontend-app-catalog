@@ -4,6 +4,7 @@ import 'regenerator-runtime/runtime';
 import {
   APP_INIT_ERROR, APP_READY, subscribe, initialize,
 } from '@edx/frontend-platform';
+import { mergeConfig } from '@edx/frontend-platform/config';
 import { ErrorPage } from '@edx/frontend-platform/react';
 import { createRoot } from 'react-dom/client';
 
@@ -24,5 +25,12 @@ subscribe(APP_INIT_ERROR, (error: { message: any; }) => {
 });
 
 initialize({
+  handlers: {
+    config: () => mergeConfig({
+      ENABLE_COURSE_DISCOVERY: process.env.ENABLE_COURSE_DISCOVERY === 'true',
+      ENABLE_PROGRAMS: false,
+      HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID: '',
+    }),
+  },
   messages,
 });
