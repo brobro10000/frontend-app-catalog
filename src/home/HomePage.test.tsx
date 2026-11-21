@@ -1,84 +1,22 @@
-import { getConfig } from '@edx/frontend-platform';
-
-import {
-  render, screen, waitFor, userEvent,
-} from '@src/setupTest';
-import genericMessages from '@src/generic/video-modal/messages';
-import { IFRAME_FEATURE_POLICY, DEFAULT_VIDEO_MODAL_HEIGHT } from '../constants';
+import axe from 'axe-core';
+import { render, screen } from '../setupTest';
 import HomePage from './HomePage';
-import messages from './components/home-banner/messages';
+import AtlasHeader from './AtlasHeader';
 
-jest.mock('@edx/frontend-platform', () => ({
-  getConfig: jest.fn(() => ({
-    SITE_NAME: process.env.SITE_NAME,
-    HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID: process.env.HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID,
-    ENABLE_COURSE_DISCOVERY: process.env.ENABLE_COURSE_DISCOVERY,
-  })),
-  ensureConfig: jest.fn(),
-}));
+beforeEach(() => { window.testHistory = ['/']; });
 
-describe('HomePage', () => {
-  it('renders without crashing', () => {
-    render(<HomePage />);
-
-    expect(screen.getByText(
-      messages.title.defaultMessage.replace('{siteName}', process.env.SITE_NAME),
-    )).toBeInTheDocument();
-    expect(screen.getByText(messages.subtitle.defaultMessage)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: messages.videoButton.defaultMessage })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(messages.searchPlaceholder.defaultMessage)).toBeInTheDocument();
-    expect(screen.getByTestId('home-banner')).toBeInTheDocument();
+it('offers local course discovery and personalized recommendations', async () => {
+  const { container } = render(<><AtlasHeader /><main id="main-content"><HomePage /></main></>);
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Your next chapter starts with curiosity.');
+  expect(screen.getByRole('link', { name: /Find my next step/ }))
+    .toHaveAttribute('href', '/personalized');
+  expect(screen.getByRole('link', { name: /Artificial intelligence/ }))
+    .toHaveAttribute('href', '/courses?search_query=artificial%20intelligence');
+  expect(container.textContent).not.toMatch(/edx|2u/i);
+  const result = await axe.run(container, {
+    runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'],
+    // JSDOM has no layout engine; verify contrast in the rendered browser.
+    rules: { 'color-contrast': { enabled: false } },
   });
-
-  it('opens video modal with YouTube iframe when video button is clicked', async () => {
-    render(<HomePage />);
-    expect(screen.getByTestId('home-banner')).toBeInTheDocument();
-
-    const videoBtn = screen.getByRole('button', { name: messages.videoButton.defaultMessage });
-    userEvent.click(videoBtn);
-
-    await waitFor(() => {
-      const videoModal = screen.getByRole('dialog');
-      expect(videoModal).toBeInTheDocument();
-      const iframe = screen.getByTitle(genericMessages.videoIframeTitle.defaultMessage);
-      expect(screen.getByLabelText(genericMessages.videoModalTitle.defaultMessage)).toBeInTheDocument();
-      expect(iframe).toHaveAttribute('src', `//www.youtube.com/embed/${process.env.HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID}?showinfo=0`);
-      expect(iframe).toHaveAttribute('allow', IFRAME_FEATURE_POLICY);
-      expect(iframe).toHaveAttribute('width', 'auto');
-      expect(iframe).toHaveAttribute('height', `${DEFAULT_VIDEO_MODAL_HEIGHT}`);
-      expect(iframe).toHaveAttribute('frameborder', '0');
-      expect(iframe).toHaveAttribute('allowfullscreen');
-    });
-  });
-
-  it('should close video modal when Escape key is pressed and return focus to button', async () => {
-    render(<HomePage />);
-
-    const videoBtn = screen.getByRole('button', { name: messages.videoButton.defaultMessage });
-    userEvent.click(videoBtn);
-
-    await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-    });
-
-    userEvent.keyboard('{Escape}');
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      const videoButtonAfterClose = screen.getByRole('button', { name: messages.videoButton.defaultMessage });
-      expect(videoButtonAfterClose).toBeInTheDocument();
-      expect(videoButtonAfterClose).toHaveFocus();
-    });
-  });
-
-  it('should not pass enableCourseDiscovery to HomeBanner', () => {
-    getConfig.mockReturnValue({
-      ENABLE_COURSE_DISCOVERY: !process.env.ENABLE_COURSE_DISCOVERY,
-    });
-
-    render(<HomePage />);
-    expect(screen.getByTestId('home-banner')).toBeInTheDocument();
-    expect(screen.queryByRole('search')).not.toBeInTheDocument();
-    expect(screen.queryByPlaceholderText(messages.searchPlaceholder.defaultMessage)).not.toBeInTheDocument();
-  });
+  expect(result.violations).toEqual([]);
 });

@@ -32,7 +32,7 @@
     "url": "https://github.com/openedx/frontend-app-catalog/issues"
   },
   "dependencies": {
-    "@edx/brand": "npm:@openedx/brand-openedx@^1.2.2",
+    "@edx/brand": "npm:@openedx/brand-openedx@^2.0.5",
     "@edx/frontend-component-footer": "^14.7.1",
     "@edx/frontend-component-header": "^6.4.0",
     "@edx/frontend-platform": "^8.4.0",
@@ -63,6 +63,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "axe-core": "^4.11.0",
     "glob": "7.2.3"
   }
 }

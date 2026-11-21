@@ -8,7 +8,7 @@ const messages = defineMessages({
   },
   subtitle: {
     id: 'catalog.home-page.subtitle',
-    defaultMessage: 'It works! Powered by the Open edX® Platform',
+    defaultMessage: 'Build skills for your next chapter. Explore a world of learning, locally.',
     description: 'Secondary text displayed below the main heading on the home page.',
   },
   searchPlaceholder: {

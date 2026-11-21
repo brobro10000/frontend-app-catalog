@@ -18,7 +18,7 @@ const HomeBanner = () => {
   const [searchValue, setSearchValue] = useState('');
   const [isOpen, open, close] = useToggle(false);
 
-  const handleSearch = () => navigate(`${ROUTES.COURSES}?search_query=${searchValue}`);
+  const handleSearch = () => navigate(`${ROUTES.COURSES}?search_query=${encodeURIComponent(searchValue)}`);
 
   const searchField = getConfig().ENABLE_COURSE_DISCOVERY && (
     <Form.Group className="mt-4.5">
@@ -32,7 +32,7 @@ const HomeBanner = () => {
             handleSearch();
           }
         }}
-        onSubmit={() => {}}
+        onSubmit={handleSearch}
       />
     </Form.Group>
   );
@@ -44,7 +44,7 @@ const HomeBanner = () => {
     >
       <div className="animation-wrapper d-flex justify-content-center align-items-center flex-column p-4 my-5">
         <HomeOverlayHtmlSlot />
-        <HomePromoVideoButtonSlot onClick={open} />
+        {getConfig().HOMEPAGE_PROMO_VIDEO_YOUTUBE_ID && <HomePromoVideoButtonSlot onClick={open} />}
         <Container size="sm">
           {searchField}
         </Container>
